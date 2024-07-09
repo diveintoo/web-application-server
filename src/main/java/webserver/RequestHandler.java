@@ -36,15 +36,18 @@ public class RequestHandler extends Thread {
             }
 
             String[] tokens = line.split(" ");
+            int contentLength = 0;
             while (!line.equals("")) {
-                line = br.readLine();
                 log.debug("header : {}", line);
+                line = br.readLine();
+                if (line.contains("Content-Length")) {
+                    contentLength = getContentLength(line);
+                }
             }
             
             String url = tokens[1];
-            if (url.startsWith("/user/create")) {
-                int index = url.indexOf("?");
-                String queryString = url.subString(index+1);
+            if ("/user/create".equals(url)) {
+                String body = IOUtils.readData(br, ContentLength);
                 Map<String, String> params = HttpRequestUtils.parseQueryString(queryString);
                 User user = new User(params.get("userId"), params.get("password"), params.get("name"), params.get("email"));
                 log.debug("User : {}", user);
@@ -77,5 +80,10 @@ public class RequestHandler extends Thread {
         } catch (IOException e) {
             log.error(e.getMessage());
         }
+    }
+
+    private int getContentLength(String line) {
+        String[] headerTokens = line.split(":");
+        return Integer.parseInt(headerTokens[1].trim());
     }
 }
