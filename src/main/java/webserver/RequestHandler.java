@@ -51,6 +51,8 @@ public class RequestHandler extends Thread {
                 Map<String, String> params = HttpRequestUtils.parseQueryString(queryString);
                 User user = new User(params.get("userId"), params.get("password"), params.get("name"), params.get("email"));
                 log.debug("User : {}", user);
+                DataOutputStream dos = new DataOutputStream(out);
+                response302Header(dos, "/index.html");
             } else {
                 DataOutputStream dos = new DataOutputStream(out);
                 byte[] body = File.readAllBytes(new File("./webapp" + token[1]).toPath());
@@ -86,4 +88,14 @@ public class RequestHandler extends Thread {
         String[] headerTokens = line.split(":");
         return Integer.parseInt(headerTokens[1].trim());
     }
+
+    private void response302Header(DataOutputStream dos, String url) {
+        try {
+            dos.writeBytes("HTTP/1.1 302 Redirect \r\n");
+            dos.writeBytes("Location: " + url + " \r\n");
+            dos.writeBytes("\r\n");
+        } catch (IOException e) {
+            log.error(e.getMessage());
+        }
+    
 }
